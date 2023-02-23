@@ -1,4 +1,5 @@
 import { NextPage } from "next";
+import nookies from "nookies";
 import React, { useState } from "react";
 
 const LeagueCode: NextPage = () => {
@@ -6,6 +7,8 @@ const LeagueCode: NextPage = () => {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    nookies.set(null, "leagueId", code);
 
     localStorage.setItem("leagueId", code);
   };

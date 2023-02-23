@@ -1,6 +1,66 @@
 import Head from "next/head";
+import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/router";
+import TeamImage from "@/components/common/image/teamImage";
+import { RankedSorting, RankedStandings } from "@/models/standings";
+import getRankedStandings from "@/endpoints/standings/getRankedStandings";
+
+const rankList: RankedSorting[] = [
+  "defTotalYdsRank.asc",
+  "defTotalYdsRank.desc",
+  "offTotalYdsRank.asc",
+  "offTotalYdsRank.desc",
+  "defPassYdsRank.asc",
+  "defPassYdsRank.desc",
+  "defRushYdsRank.asc",
+  "defRushYdsRank.desc",
+  "offPassYdsRank.asc",
+  "offPassYdsRank.desc",
+  "offRushYdsRank.asc",
+  "offRushYdsRank.desc",
+  "prevRank.asc",
+  "prevRank.desc",
+  "ptsAgainstRank.asc",
+  "ptsAgainstRank.desc",
+  "seed.asc",
+  "seed.desc",
+  "tODiff.asc",
+  "tODiff.desc",
+  "teamOvr.asc",
+  "teamOvr.desc",
+  "winPct.asc",
+  "winPct.desc",
+  "rank.asc",
+  "rank.desc",
+  "totalLosses.asc",
+  "totalLosses.desc",
+  "totalWins.asc",
+  "totalWins.desc",
+];
 
 export default function Home() {
+  const [data, setData] = useState<RankedStandings[]>([]);
+  const [sort, setSort] = useState<RankedSorting>("offTotalYdsRank.asc");
+  const router = useRouter();
+
+  const handleFetch = useCallback(async () => {
+    const code = localStorage.getItem("leagueId");
+
+    if (code) {
+      const blah = await getRankedStandings(Number(code), {
+        include_team: true,
+        sort_by: sort,
+      });
+      if (blah.success) {
+        setData(blah.body);
+      }
+    }
+  }, [sort]);
+
+  useEffect(() => {
+    handleFetch();
+  }, [handleFetch, sort]);
+
   return (
     <>
       <Head>
@@ -10,7 +70,46 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main>
-        <p>page</p>
+        <select
+          onChange={(e) => setSort(e.currentTarget.value as RankedSorting)}
+        >
+          {rankList.map((v) => (
+            <option>{v}</option>
+          ))}
+        </select>
+        <div className="flex justify-center flex-wrap p-4">
+          {data.length &&
+            data.map((v, index) => (
+              <button
+                type="button"
+                className="border p-2 flex flex-col space-x-2 w-max m-1 rounded"
+                onClick={() =>
+                  router.push(`/team/${v.team!.displayName}/${v.team!.teamId}`)
+                }
+              >
+                <div className="flex items-center">
+                  <div className=" h-12 w-12 relative">
+                    <TeamImage teamLogoId={v.team!.logoId} />
+                  </div>
+                  <h1>
+                    {v.team?.displayName} {index + 1}
+                  </h1>
+                </div>
+                <div className="divide-y">
+                  <ul>
+                    <li>Total Off: {v.offTotalYdsRank}</li>
+                    <li>Off Pass: {v.offPassYdsRank}</li>
+                    <li>Off Rush: {v.offRushYdsRank}</li>
+                  </ul>
+                  <ul>
+                    <li>Total Def: {v.defTotalYdsRank}</li>
+                    <li>Def Pass: {v.defPassYdsRank}</li>
+                    <li>Def Rush: {v.defRushYdsRank}</li>
+                  </ul>
+                </div>
+              </button>
+            ))}
+        </div>
       </main>
     </>
   );

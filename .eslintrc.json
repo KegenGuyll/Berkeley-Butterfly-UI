@@ -29,11 +29,12 @@
             "usePrettierrc": true
           }
       ],
-      "indent": ["error", 2],
       "import/extensions": "off",
       "no-underscore-dangle": "off",
       "camelcase": "off",
-      "resolveJsonModule": "off"
+      "resolveJsonModule": "off",
+      "import/no-unresolved": "off",
+      "import/no-extraneous-dependencies": "off"
   }, 
   "settings": {
   "import/resolver": {
