@@ -10,7 +10,7 @@ export interface BaseCardProps extends HTMLAttributes<HTMLDivElement> {
     href: string;
     text: string;
   };
-  header: string;
+  header?: string;
 }
 
 const BaseCard = ({
@@ -31,9 +31,11 @@ const BaseCard = ({
       )}
       {...props}
     >
-      <header className="flex items-center font-extrabold text-xs text-start py-2 mx-2">
-        <h3>{header}</h3>
-      </header>
+      {!header && (
+        <header className="flex items-center font-extrabold text-xs text-start py-2 mx-2">
+          <h3>{header}</h3>
+        </header>
+      )}
       <div className={clsx(contentPadding && "px-3 pt-2")}>{children}</div>
       {!!footer && (
         <footer className="py-2 mx-2 text-center flex items-center justify-center mt-2">

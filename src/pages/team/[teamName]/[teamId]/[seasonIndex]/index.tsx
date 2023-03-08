@@ -1,4 +1,4 @@
-import { GetServerSideProps, NextPage } from "next";
+import { GetServerSideProps } from "next";
 import { useRouter } from "next/router";
 import nookies from "nookies";
 import { IGetTeamLeaders, IGetTeamSchedule, Team } from "@/models/team";
@@ -11,41 +11,30 @@ import TabCard from "@/components/common/card/tabCard";
 import DefenseList from "@/components/players/teamLeaderCard/defenseList";
 import getTeam from "@/endpoints/team/getTeam";
 import StandingsTable from "@/components/standings/standingsTable";
-import getTeamStats from "@/endpoints/team/getTeamStats";
-import { PassingStats, TeamStats } from "@/models/stats";
-import OffenseSeasonStatsGraph from "@/components/team/OffenseSeasonStatsGraph";
-import getTeamPerGameStats from "@/endpoints/team/players/getTeamPerGameStats";
+import { NextPageWithLayout } from "@/pages/_app";
 
 interface Props {
-  leadingInts: IGetTeamLeaders;
+  defense: IGetTeamLeaders[];
   leadingPasser: IGetTeamLeaders;
   leadingReceiver: IGetTeamLeaders;
   leadingRusher: IGetTeamLeaders;
-  leadingSacks: IGetTeamLeaders;
-  leadingTackles: IGetTeamLeaders;
-  passingPerGame: PassingStats[];
   team: Team;
   teamSchedule: IGetTeamSchedule[];
-  teamStats: TeamStats[];
 }
 
-const TeamLanding: NextPage<Props> = ({
+const TeamLanding: NextPageWithLayout<Props> = ({
   leadingPasser,
   leadingReceiver,
   leadingRusher,
-  leadingInts,
-  leadingSacks,
-  leadingTackles,
+  defense,
   teamSchedule,
   team,
-  teamStats,
-  passingPerGame,
 }: Props) => {
   const router = useRouter();
   const { teamId } = router.query;
 
   return (
-    <div className="w-full h-full flex items-center justify-center">
+    <div>
       <div className="flex space-x-10">
         <div className="w-[220px] flex-none">
           <BaseCard
@@ -59,12 +48,6 @@ const TeamLanding: NextPage<Props> = ({
             <TeamSchedule teamId={Number(teamId)} schedule={teamSchedule} />
           </BaseCard>
         </div>
-        <BaseCard className="max-w-xl" header="Team Stats">
-          <OffenseSeasonStatsGraph
-            stats={teamStats}
-            perGameStats={{ passing: passingPerGame } as any}
-          />
-        </BaseCard>
         <div className="w-[300px] flex flex-col space-y-8">
           <BaseCard
             footer={{
@@ -99,16 +82,10 @@ const TeamLanding: NextPage<Props> = ({
                   leadingRusher={leadingRusher}
                 />
               ),
-              "2": (
-                <DefenseList
-                  leadingInter={leadingInts}
-                  leadingSacker={leadingSacks}
-                  leadingTackler={leadingTackles}
-                />
-              ),
+              "2": <DefenseList defense={defense} />,
             }}
             footer={{
-              href: "#",
+              href: `${router.asPath}/stats`,
               text: "Full Team Statistics",
             }}
             header="Team Leaders"
@@ -125,23 +102,26 @@ export default TeamLanding;
 export const getServerSideProps: GetServerSideProps = async (context) => {
   try {
     const { leagueId } = nookies.get(context);
-    const { teamId } = context.query;
+    const { teamId, seasonIndex } = context.query;
 
     if (!leagueId) throw new Error("unable to find leagueId");
 
     const numberLeagueId = Number(leagueId);
     const numberTeamId = Number(teamId);
+    const numberSeasonIndex = Number(seasonIndex);
 
     const leadingPasser: IGetTeamLeaders[] = [];
     const leadingRusher: IGetTeamLeaders[] = [];
     const leadingReceiver: IGetTeamLeaders[] = [];
+    const leadingDefense: IGetTeamLeaders[] = [];
+
     const leadingPasserRequest = getTeamLeaders(
       numberLeagueId,
       numberTeamId,
       "passing",
       {
         sort_by: "passYds.desc",
-        seasonIndex: 0,
+        seasonIndex: numberSeasonIndex,
       }
     );
     const leadingRusherRequest = getTeamLeaders(
@@ -150,7 +130,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       "rushing",
       {
         sort_by: "rushAtt.desc",
-        seasonIndex: 0,
+        seasonIndex: numberSeasonIndex,
       }
     );
     const leadingReceiverRequest = getTeamLeaders(
@@ -159,7 +139,17 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       "receiving",
       {
         sort_by: "recYds.desc",
-        seasonIndex: 0,
+        seasonIndex: numberSeasonIndex,
+      }
+    );
+
+    const defenseRequest = getTeamLeaders(
+      numberLeagueId,
+      numberTeamId,
+      "defense",
+      {
+        sort_by: "defTotalTackles.desc",
+        seasonIndex: numberSeasonIndex,
       }
     );
 
@@ -167,58 +157,18 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       leadingPasserRequest,
       leadingRusherRequest,
       leadingReceiverRequest,
+      defenseRequest,
     ]);
-
-    const leadingTacklesRequest = await getTeamLeaders(
-      numberLeagueId,
-      numberTeamId,
-      "defense",
-      {
-        sort_by: "defTotalTackles.desc",
-        seasonIndex: 0,
-      }
-    );
-    const leadingSacksRequest = await getTeamLeaders(
-      numberLeagueId,
-      numberTeamId,
-      "defense",
-      {
-        sort_by: "defSacks.desc",
-        seasonIndex: 0,
-      }
-    );
-    const leadingIntsRequest = await getTeamLeaders(
-      numberLeagueId,
-      numberTeamId,
-      "defense",
-      {
-        sort_by: "defInts.desc",
-        seasonIndex: 0,
-      }
-    );
 
     const teamSchedule = await getTeamSchedule(numberLeagueId, numberTeamId, {
       include_teams: true,
+      seasonIndex: numberSeasonIndex,
     });
 
     const team = await getTeam(numberLeagueId, numberTeamId, {
       include_standings: true,
-      seasonIndex: 0,
+      seasonIndex: numberSeasonIndex,
     });
-
-    const teamStats = await getTeamStats(numberLeagueId, numberTeamId, {
-      seasonIndex: 0,
-      season_type: "reg",
-    });
-
-    const passingPerGameStats = await getTeamPerGameStats(
-      numberLeagueId,
-      numberTeamId,
-      "passing",
-      {
-        seasonIndex: 0,
-      }
-    );
 
     settlePromise.forEach((s) => {
       if (s.status === "fulfilled") {
@@ -232,6 +182,9 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
           case "receiving":
             leadingReceiver.push(...s.value.body);
             break;
+          case "defense":
+            leadingDefense.push(...s.value.body);
+            break;
           default:
             break;
         }
@@ -244,13 +197,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         leadingRusher: leadingRusher[0],
         leadingReceiver: leadingReceiver[0],
         teamSchedule: teamSchedule.body,
-        leadingTackles: leadingTacklesRequest.body[0],
-        leadingSacks: leadingSacksRequest.body[0],
-        leadingInts: leadingIntsRequest.body[0],
+        defense: leadingDefense,
         team: team.success && team.body,
-        teamStats: teamStats && teamStats.body,
-        passingPerGame:
-          passingPerGameStats && (passingPerGameStats.body as PassingStats[]),
       },
     };
   } catch (error) {

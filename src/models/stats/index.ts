@@ -1,3 +1,4 @@
+/* eslint-disable no-use-before-define */
 import { Schedule } from "../schedule";
 
 export type TeamStats = {
@@ -80,6 +81,7 @@ export type PassingStats = {
   passYdsPerAtt: number;
   passYdsPerGame: number;
   passerRating: number;
+  playerInfo: PlayerStats;
   rosterId: number;
   scheduleId: number;
   seasonIndex: number;
@@ -94,6 +96,7 @@ export type PassingStats = {
 export type RushingStats = {
   dataType: "rushing";
   fullName: string;
+  playerInfo: PlayerStats;
   rosterId: number;
   rush20PlusYds: number;
   rushAtt: number;
@@ -131,6 +134,7 @@ export type DefenseStats = {
   defTDs: number;
   defTotalTackles: number;
   fullName: string;
+  playerInfo: PlayerStats;
   rosterId: number;
   scheduleId: number;
   seasonIndex: number;
@@ -154,6 +158,7 @@ export type KickingStats = {
   kickPts: number;
   kickoffAtt: number;
   kickoffTBs: number;
+  playerInfo: PlayerStats;
   rosterId: number;
   scheduleId: number;
   seasonIndex: number;
@@ -171,6 +176,7 @@ export type KickingStats = {
 export type PuntingStats = {
   dataType: "punting";
   fullName: string;
+  playerInfo: PlayerStats;
   puntAtt: number;
   puntLongest: number;
   puntNetYds: number;
@@ -194,6 +200,7 @@ export type PuntingStats = {
 export type ReceivingStats = {
   dataType: "receiving";
   fullName: string;
+  playerInfo: PlayerStats;
   recCatchPct: number;
   recCatches: number;
   recDrops: number;

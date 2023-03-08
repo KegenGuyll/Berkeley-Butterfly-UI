@@ -1,65 +1,51 @@
 import Head from "next/head";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/router";
+import Select, { SingleValue } from "react-select";
 import TeamImage from "@/components/common/image/teamImage";
-import { RankedSorting, RankedStandings } from "@/models/standings";
-import getRankedStandings from "@/endpoints/standings/getRankedStandings";
-
-const rankList: RankedSorting[] = [
-  "defTotalYdsRank.asc",
-  "defTotalYdsRank.desc",
-  "offTotalYdsRank.asc",
-  "offTotalYdsRank.desc",
-  "defPassYdsRank.asc",
-  "defPassYdsRank.desc",
-  "defRushYdsRank.asc",
-  "defRushYdsRank.desc",
-  "offPassYdsRank.asc",
-  "offPassYdsRank.desc",
-  "offRushYdsRank.asc",
-  "offRushYdsRank.desc",
-  "prevRank.asc",
-  "prevRank.desc",
-  "ptsAgainstRank.asc",
-  "ptsAgainstRank.desc",
-  "seed.asc",
-  "seed.desc",
-  "tODiff.asc",
-  "tODiff.desc",
-  "teamOvr.asc",
-  "teamOvr.desc",
-  "winPct.asc",
-  "winPct.desc",
-  "rank.asc",
-  "rank.desc",
-  "totalLosses.asc",
-  "totalLosses.desc",
-  "totalWins.asc",
-  "totalWins.desc",
-];
+import { Team } from "@/models/team";
+import getTeams from "@/endpoints/team/getTeams";
+import getAvailableSeasons from "@/endpoints/schedule/getAvailableSeasons";
+import { AvailableSeason } from "@/models/schedule";
 
 export default function Home() {
-  const [data, setData] = useState<RankedStandings[]>([]);
-  const [sort, setSort] = useState<RankedSorting>("offTotalYdsRank.asc");
+  const [data, setData] = useState<Team[]>([]);
+  const [seasons, setSeasons] = useState<AvailableSeason[]>([]);
+  const [activeSeason, setActiveSeason] = useState<AvailableSeason>();
   const router = useRouter();
 
   const handleFetch = useCallback(async () => {
     const code = localStorage.getItem("leagueId");
 
     if (code) {
-      const blah = await getRankedStandings(Number(code), {
-        include_team: true,
-        sort_by: sort,
-      });
+      const blah = await getTeams(Number(code));
       if (blah.success) {
         setData(blah.body);
       }
+      const getSeasons = await getAvailableSeasons(Number(code));
+      if (getSeasons.success) {
+        setSeasons(getSeasons.body);
+      }
     }
-  }, [sort]);
+  }, [activeSeason]);
+
+  const handleSetActiveSeason = (
+    newValue: SingleValue<{ label: number; value: number }>
+  ) => {
+    if (!newValue) return;
+
+    setActiveSeason({
+      _id: {
+        seasonIndex: newValue.value,
+      },
+      seasonIndex: newValue.value,
+      year: newValue.label,
+    });
+  };
 
   useEffect(() => {
     handleFetch();
-  }, [handleFetch, sort]);
+  }, [handleFetch, activeSeason]);
 
   return (
     <>
@@ -70,42 +56,30 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main>
-        <select
-          onChange={(e) => setSort(e.currentTarget.value as RankedSorting)}
-        >
-          {rankList.map((v) => (
-            <option>{v}</option>
-          ))}
-        </select>
+        <Select
+          options={seasons.map((season) => ({
+            label: season.year,
+            value: season.seasonIndex,
+          }))}
+          onChange={handleSetActiveSeason}
+        />
         <div className="flex justify-center flex-wrap p-4">
           {data.length &&
-            data.map((v, index) => (
+            activeSeason &&
+            data.map((v) => (
               <button
                 type="button"
                 className="border p-2 flex flex-col space-x-2 w-max m-1 rounded"
                 onClick={() =>
-                  router.push(`/team/${v.team!.displayName}/${v.team!.teamId}`)
+                  router.push(
+                    `/team/${v.displayName}/${v.teamId}/${activeSeason.seasonIndex}`
+                  )
                 }
               >
                 <div className="flex items-center">
                   <div className=" h-12 w-12 relative">
-                    <TeamImage teamLogoId={v.team!.logoId} />
+                    <TeamImage teamLogoId={v.logoId} />
                   </div>
-                  <h1>
-                    {v.team?.displayName} {index + 1}
-                  </h1>
-                </div>
-                <div className="divide-y">
-                  <ul>
-                    <li>Total Off: {v.offTotalYdsRank}</li>
-                    <li>Off Pass: {v.offPassYdsRank}</li>
-                    <li>Off Rush: {v.offRushYdsRank}</li>
-                  </ul>
-                  <ul>
-                    <li>Total Def: {v.defTotalYdsRank}</li>
-                    <li>Def Pass: {v.defPassYdsRank}</li>
-                    <li>Def Rush: {v.defRushYdsRank}</li>
-                  </ul>
                 </div>
               </button>
             ))}

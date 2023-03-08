@@ -3,8 +3,8 @@ import { API_ENDPOINT } from "..";
 import { IGetStandingsQuery, IStandingsResponse } from "@/models/standings";
 
 const getStandings = async (
-  leagueId: number,
-  teamId: number,
+  leagueId: number | string,
+  teamId: number | string,
   query?: IGetStandingsQuery
 ): Promise<IStandingsResponse> => {
   const url = `${API_ENDPOINT}/standings/${leagueId}/${teamId}`;

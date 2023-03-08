@@ -27,11 +27,16 @@ export interface ITeamResponse {
   success: boolean;
 }
 
+export interface ITeamsResponse {
+  body: Team[];
+  success: boolean;
+}
+
 export interface IGetTeamQuery {
   include_players?: boolean;
   include_standings?: boolean;
   include_stats?: boolean;
-  seasonIndex?: number;
+  seasonIndex: number;
 }
 
 export interface IGetLastGameQuery {
@@ -44,6 +49,7 @@ type SeasonType = "reg" | "pre";
 export interface IGetTeamScheduleQuery {
   include_team_stats?: boolean;
   include_teams?: boolean;
+  seasonIndex: number | string;
   season_type?: SeasonType;
 }
 

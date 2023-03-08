@@ -95,6 +95,7 @@ export interface IStandingsResponse {
 export interface IGetStandingsQuery {
   include_stats?: boolean;
   include_team?: boolean;
+  seasonIndex: number | string;
 }
 
 export type RankedSorting =

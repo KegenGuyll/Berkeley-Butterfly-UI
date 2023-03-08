@@ -11,7 +11,24 @@ export interface Schedule {
   weekIndex: number;
 }
 
+export interface AvailableSeason {
+  _id: {
+    seasonIndex: number;
+  };
+  seasonIndex: number;
+  year: number;
+}
+
 export interface IScheduleResponse {
   body: Schedule;
   success: boolean;
+}
+
+export interface IAvailableSeasonsResponse {
+  body: AvailableSeason[];
+  success: boolean;
+}
+
+export interface IAvailableSeasonsQuery {
+  baseYear?: number;
 }

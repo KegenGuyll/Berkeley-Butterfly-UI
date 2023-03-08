@@ -3,22 +3,8 @@ import Image from "next/image";
 
 import nflImageKey from "../../../data/nfl-teams.json";
 
-type Enumerate<
-  N extends number,
-  Acc extends number[] = []
-> = Acc["length"] extends N
-  ? Acc[number]
-  : Enumerate<N, [...Acc, Acc["length"]]>;
-
-type IntRange<F extends number, T extends number> = Exclude<
-  Enumerate<T>,
-  Enumerate<F>
->;
-
-type T = IntRange<0, 32>;
-
 interface Props {
-  teamLogoId: T;
+  teamLogoId: number;
 }
 
 const TeamImage = ({ teamLogoId }: Props) => {

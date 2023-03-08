@@ -1,25 +1,49 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { IGetTeamLeaders } from "@/models/team";
 import TeamLeaderCard from ".";
 
 interface Props {
-  leadingInter: IGetTeamLeaders | undefined;
-  leadingSacker: IGetTeamLeaders | undefined;
-  leadingTackler: IGetTeamLeaders | undefined;
+  defense: IGetTeamLeaders[];
 }
 
-const DefenseList = ({
-  leadingTackler,
-  leadingSacker,
-  leadingInter,
-}: Props) => {
+const sortDefense = (
+  a: IGetTeamLeaders,
+  b: IGetTeamLeaders,
+  type: "defInts" | "defTotalTackles" | "defSacks"
+) => {
+  if (a.dataType !== "defense" || b.dataType !== "defense") return 0;
+
+  if (a[type] < b[type]) return 1;
+
+  if (a[type] > b[type]) return -1;
+
+  return 0;
+};
+
+const DefenseList = ({ defense }: Props) => {
+  const [leadingTackles, setLeadingTackles] = useState<IGetTeamLeaders>();
+  const [leadingSacks, setLeadingSacks] = useState<IGetTeamLeaders>();
+  const [leadingInt, setLeadingInt] = useState<IGetTeamLeaders>();
+
+  useEffect(() => {
+    const tackles = defense.sort((a, b) =>
+      sortDefense(a, b, "defTotalTackles")
+    )[0];
+    const sacks = defense.sort((a, b) => sortDefense(a, b, "defSacks"))[0];
+    const ints = defense.sort((a, b) => sortDefense(a, b, "defInts"))[0];
+
+    setLeadingTackles(tackles);
+    setLeadingSacks(sacks);
+    setLeadingInt(ints);
+  }, [defense]);
+
   return (
     <div>
-      {leadingTackler && leadingTackler.dataType === "defense" && (
+      {leadingTackles && leadingTackles.dataType === "defense" && (
         <TeamLeaderCard
           highlightedStat={{
             title: "Tackles",
-            value: leadingTackler.defTotalTackles,
+            value: leadingTackles.defTotalTackles,
           }}
           keyStats={[
             {
@@ -31,14 +55,14 @@ const DefenseList = ({
               title: "Ints",
             },
           ]}
-          player={leadingTackler}
+          player={leadingTackles}
         />
       )}
-      {leadingSacker && leadingSacker.dataType === "defense" && (
+      {leadingSacks && leadingSacks.dataType === "defense" && (
         <TeamLeaderCard
           highlightedStat={{
             title: "Sacks",
-            value: leadingSacker.defSacks,
+            value: leadingSacks.defSacks,
           }}
           keyStats={[
             {
@@ -46,14 +70,14 @@ const DefenseList = ({
               title: "Tackles",
             },
           ]}
-          player={leadingSacker}
+          player={leadingSacks}
         />
       )}
-      {leadingInter && leadingInter.dataType === "defense" && (
+      {leadingInt && leadingInt.dataType === "defense" && (
         <TeamLeaderCard
           highlightedStat={{
             title: "Interceptions",
-            value: leadingInter.defInts,
+            value: leadingInt.defInts,
           }}
           keyStats={[
             {
@@ -65,7 +89,7 @@ const DefenseList = ({
               title: "CA",
             },
           ]}
-          player={leadingInter}
+          player={leadingInt}
         />
       )}
     </div>

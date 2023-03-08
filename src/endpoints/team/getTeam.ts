@@ -3,8 +3,8 @@ import { API_ENDPOINT } from "..";
 import { IGetTeamQuery, ITeamResponse } from "@/models/team";
 
 const getTeam = async (
-  leagueId: number,
-  teamId: number,
+  leagueId: number | string,
+  teamId: number | string,
   query?: IGetTeamQuery
 ): Promise<ITeamResponse> => {
   const url = `${API_ENDPOINT}/team/${leagueId}/${teamId}`;
