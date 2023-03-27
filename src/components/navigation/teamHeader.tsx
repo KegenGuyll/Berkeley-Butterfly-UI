@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import clsx from "clsx";
@@ -15,11 +15,17 @@ const TeamHeader = () => {
   const router = useRouter();
   const { teamId, seasonIndex } = router.query;
 
-  const baseUrl = useMemo(() => {
-    if (!team) return `/team/-/${teamId}/${seasonIndex}`;
+  const baseUrl = useCallback(
+    (withSeason = true) => {
+      if (!team) return `/team/-/${teamId}/${seasonIndex}`;
 
-    return `/team/${team.displayName}/${teamId}/${seasonIndex}`;
-  }, [team, teamId, seasonIndex]);
+      if (withSeason)
+        return `/team/${team.displayName}/${teamId}/${seasonIndex}`;
+
+      return `/team/${team.displayName}/${teamId}`;
+    },
+    [team, teamId, seasonIndex]
+  );
 
   const fetchTeam = useCallback(async () => {
     const leagueId = localStorage.getItem("leagueId");
@@ -51,7 +57,6 @@ const TeamHeader = () => {
         </div>
         <div className="flex flex-col">
           <span className="text-3xl space-x-2">
-            <span className="font-light">{2022 + Number(seasonIndex)}</span>
             <span className="font-light">{team.cityName}</span>
             <span>{team.displayName}</span>
           </span>
@@ -70,14 +75,17 @@ const TeamHeader = () => {
       <div className="py-3">
         <ul className="flex space-x-3">
           <li>
-            <Link href={baseUrl}>Home</Link>
+            <Link href={baseUrl()}>Home</Link>
           </li>
           <li
             className={clsx(
               router.pathname.includes("stats") && "border-b-2 border-slate-500"
             )}
           >
-            <Link href={`${baseUrl}/stats`}>Stats</Link>
+            <Link href={`${baseUrl()}/stats`}>Stats</Link>
+          </li>
+          <li>
+            <Link href={`${baseUrl(false)}/roster`}>Roster</Link>
           </li>
         </ul>
       </div>

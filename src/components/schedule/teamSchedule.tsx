@@ -65,19 +65,21 @@ const TeamSchedule = ({ schedule, teamId }: Props) => {
                   : g.homeTeam?.displayName}
               </span>
             </div>
-            <div className="text-xs items-end">
-              {isWin(g) ? (
-                <span className=" text-green-500 mr-1">W</span>
-              ) : (
-                <span className="text-red-500 mr-1 ">L</span>
-              )}
+            {g.status !== 1 && (
+              <div className="text-xs items-end">
+                {isWin(g) ? (
+                  <span className=" text-green-500 mr-1">W</span>
+                ) : (
+                  <span className="text-red-500 mr-1 ">L</span>
+                )}
 
-              {g.homeScore > g.awayScore ? (
-                <span>{`${g.homeScore}-${g.awayScore}`}</span>
-              ) : (
-                <span>{`${g.awayScore}-${g.homeScore}`}</span>
-              )}
-            </div>
+                {g.homeScore > g.awayScore ? (
+                  <span>{`${g.homeScore}-${g.awayScore}`}</span>
+                ) : (
+                  <span>{`${g.awayScore}-${g.homeScore}`}</span>
+                )}
+              </div>
+            )}
           </div>
         </Link>
       ))}

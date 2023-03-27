@@ -78,6 +78,11 @@ export interface IGetTeamLeadersResponse {
   success: boolean;
 }
 
+export interface IGetTeamRosterResponse {
+  body: Player[];
+  success: boolean;
+}
+
 export interface IGetTeamLeadersQuery {
   seasonIndex: number;
   sort_by?: LeadersSortList;

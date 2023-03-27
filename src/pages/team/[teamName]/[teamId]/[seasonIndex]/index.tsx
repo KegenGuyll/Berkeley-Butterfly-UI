@@ -172,6 +172,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
     settlePromise.forEach((s) => {
       if (s.status === "fulfilled") {
+        console.log(s.value);
         switch (s.value.body[0].dataType) {
           case "passing":
             leadingPasser.push(...s.value.body);
@@ -202,6 +203,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       },
     };
   } catch (error) {
+    console.error(error);
     return {
       props: {},
       redirect: {
