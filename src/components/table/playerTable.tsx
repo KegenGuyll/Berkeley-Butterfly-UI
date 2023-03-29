@@ -9,7 +9,7 @@ import DevTraitImage from "../common/image/devTraitImage";
 import convertToInternationalCurrencySystem from "@/utils/CurrencySystem";
 
 interface Props {
-  players: Player[];
+  players: Player[]
 }
 
 type DataRow = Player & {
@@ -111,9 +111,12 @@ const columns: TableColumn<DataRow>[] = [
 
 const playerTable = ({ players }: Props) => {
   const [data, setData] = useState<DataRow[]>([]);
+  const [reslovedPlayers, setResolvedPlayers] = useState<Player[]>([])
   const router = useRouter();
 
   const { teamName } = router.query;
+
+  const handlePlayers = () => 
 
   useEffect(() => {
     const newArray: DataRow[] = [];

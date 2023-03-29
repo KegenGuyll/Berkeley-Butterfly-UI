@@ -2,10 +2,12 @@
 /* eslint-disable no-unused-vars */
 import type { AppProps } from "next/app";
 import "../styles/globals.css";
-import { ReactElement, ReactNode, useEffect } from "react";
-import { useRouter } from "next/router";
+import { ReactElement, ReactNode } from "react";
 import { NextPage } from "next";
+import { Provider } from "react-redux";
 import Layout from "@/layout";
+
+import { store } from "@/redux/store";
 
 export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
   getLayout?: (page: ReactElement) => ReactNode;
@@ -16,19 +18,11 @@ type AppPropsWithLayout = AppProps & {
 };
 
 export default function App({ Component, pageProps }: AppPropsWithLayout) {
-  const router = useRouter();
-
-  useEffect(() => {
-    const code = localStorage.getItem("leagueId");
-
-    if (!code) {
-      router.push("/league-code");
-    }
-  }, []);
-
   return (
-    <Layout>
-      <Component {...pageProps} />
-    </Layout>
+    <Provider store={store}>
+      <Layout>
+        <Component {...pageProps} />
+      </Layout>
+    </Provider>
   );
 }
