@@ -101,8 +101,10 @@ export default TeamLanding;
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   try {
-    const { leagueId } = nookies.get(context);
+    const { leagueId, ...cookies } = nookies.get(context);
     const { teamId, seasonIndex } = context.query;
+
+    console.log(cookies)
 
     if (!leagueId) throw new Error("unable to find leagueId");
 

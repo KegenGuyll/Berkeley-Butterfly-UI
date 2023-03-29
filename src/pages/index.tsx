@@ -3,36 +3,44 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Select, { SingleValue } from "react-select";
 import TeamImage from "@/components/common/image/teamImage";
-import { Team } from "@/models/team";
 import getTeams from "@/endpoints/team/getTeams";
 import getAvailableSeasons from "@/endpoints/schedule/getAvailableSeasons";
 import { AvailableSeason } from "@/models/schedule";
+import { useAppDispatch, useAppSelector } from "@/hooks/redux";
+import {
+  setAvailableSeasons,
+  setCurrentSeasonIndex,
+  setTeams,
+} from "@/redux/slices/activeLeague";
 
 export default function Home() {
-  const [data, setData] = useState<Team[]>([]);
-  const [seasons, setSeasons] = useState<AvailableSeason[]>([]);
-  const [activeSeason, setActiveSeason] = useState<AvailableSeason>();
   const router = useRouter();
+  const dispatch = useAppDispatch();
+  const { leagueId, teams, availableSeasons } = useAppSelector(
+    (state) => state.activeLeague
+  );
+
+  const [activeSeason, setActiveSeason] = useState<AvailableSeason>();
 
   const handleFetch = useCallback(async () => {
-    const code = localStorage.getItem("leagueId");
-
-    if (code) {
-      const blah = await getTeams(Number(code));
-      if (blah.success) {
-        setData(blah.body);
+    if (leagueId) {
+      const teamResponse = await getTeams(leagueId);
+      if (teamResponse.success) {
+        dispatch(setTeams(teamResponse.body));
       }
-      const getSeasons = await getAvailableSeasons(Number(code));
+      const getSeasons = await getAvailableSeasons(leagueId);
       if (getSeasons.success) {
-        setSeasons(getSeasons.body);
+        dispatch(setAvailableSeasons(getSeasons.body));
       }
     }
-  }, [activeSeason]);
+  }, [leagueId]);
 
   const handleSetActiveSeason = (
     newValue: SingleValue<{ label: number; value: number }>
   ) => {
     if (!newValue) return;
+
+    dispatch(setCurrentSeasonIndex(newValue.value));
 
     setActiveSeason({
       _id: {
@@ -45,7 +53,7 @@ export default function Home() {
 
   useEffect(() => {
     handleFetch();
-  }, [handleFetch, activeSeason]);
+  }, [handleFetch]);
 
   return (
     <>
@@ -57,16 +65,15 @@ export default function Home() {
       </Head>
       <main>
         <Select
-          options={seasons.map((season) => ({
+          options={availableSeasons.map((season) => ({
             label: season.year,
             value: season.seasonIndex,
           }))}
           onChange={handleSetActiveSeason}
         />
         <div className="flex justify-center flex-wrap p-4">
-          {data.length &&
-            activeSeason &&
-            data.map((v) => (
+          {activeSeason &&
+            Object.values(teams).map((v) => (
               <button
                 type="button"
                 className="border p-2 flex flex-col space-x-2 w-max m-1 rounded"
@@ -77,7 +84,7 @@ export default function Home() {
                 }
               >
                 <div className="flex items-center">
-                  <div className=" h-12 w-12 relative">
+                  <div className="h-12 w-12 relative">
                     <TeamImage teamLogoId={v.logoId} />
                   </div>
                 </div>
